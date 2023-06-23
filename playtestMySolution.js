@@ -621,129 +621,77 @@ const words = [
     "youth","yucky"
   ]
 
-  function createElementsMap(elements) {
-    const elementsMap = new Map();
-    elements.forEach(element => {
-      const lowerCaseSymbol = element.symbol.toLowerCase();
-      if(elementsMap.has(lowerCaseSymbol[0])) {
-        elementsMap.set(lowerCaseSymbol[0], elementsMap.get(lowerCaseSymbol[0]).set(lowerCaseSymbol, {"name": element.name, "number": element.number}))
-      } else {
-        const newSymbolMap = new Map();
-        newSymbolMap.set(lowerCaseSymbol, {"name": element.name, "number": element.number});
-        elementsMap.set(lowerCaseSymbol[0], newSymbolMap)
-      }
-    })
-    return elementsMap;
-  }
+function createElementsMap(elements) {
+	const elementsMap = new Map();
+	elements.forEach(element => {
+		const lowerCaseSymbol = element.symbol.toLowerCase();
+		if(elementsMap.has(lowerCaseSymbol[0])) {
+			elementsMap.set(lowerCaseSymbol[0], elementsMap.get(lowerCaseSymbol[0]).set(lowerCaseSymbol, {"name": element.name, "number": element.number}))
+		} else {
+			const newSymbolMap = new Map();
+			newSymbolMap.set(lowerCaseSymbol, {"name": element.name, "number": element.number});
+			elementsMap.set(lowerCaseSymbol[0], newSymbolMap)
+		}
+	})
+	return elementsMap;
+}
 
-  function checkHelper(inputWord, index = 0, arr = []) {
-    if(index >= inputWord.length) {
-      return arr;
-    }
-  
-    const letterGroup = elementsMap.get(inputWord.slice(index, index+1));
-    if(letterGroup !== undefined) {
-      // check for two letter match as that is preferable
-      const twoLetterMatch = letterGroup.has(inputWord.slice(index, index+2));
-      if(twoLetterMatch) {
-        return checkHelper(inputWord, index+2, [...arr, inputWord.slice(index, index+2)]);
-      } else {
-        // else check for one
-        const oneLetterMatch = letterGroup.has(inputWord.slice(index, index+1));
-        if(oneLetterMatch) {
-          return checkHelper(inputWord, index+1, [...arr, inputWord.slice(index, index+1)]);
-        } else {
-          // nothing found by choosing two letter grouping
-          // try going back and selecting 1 letter option if it was there
-          const revArr = [...arr].reverse();
-          for(let i = 0; i<arr.length; i++) {
-            const symbol = revArr[i];
-            if(symbol.length>1) {
-              const previousOneLetter = symbol[0];
-              const previousOneLetterMatch = elementsMap.get(previousOneLetter).has(previousOneLetter)
+function checkWordHelper(inputWord, index, arr, letterGroup, symbol) {
+	if(letterGroup.has(symbol)) {
+		return checkWord(inputWord, index+symbol.length, [...arr, inputWord.slice(index, index+symbol.length)])
+	}
+	return {found: false};
+}
 
-              if(previousOneLetterMatch) {
-                return checkHelper(inputWord, index-(i*2)-1, [...arr.slice(0, -(i+1)), previousOneLetter]);
-              }
-            }
-          }
-        }
-      }
-    } else {
-      // letter group is not there
-      return [];
-    }
-  }
-  
-  function checkHelper(inputWord, index = 0, arr = []) {
-    if(index >= inputWord.length) {
-      return arr;
-    }
-  
-    const letterGroup = elementsMap.get(inputWord.slice(index, index+1));
-    if(letterGroup !== undefined) {
-      // check for two letter match as that is preferable
-      const twoLetterMatch = letterGroup.has(inputWord.slice(index, index+2));
-      if(twoLetterMatch) {
-        return checkHelper(inputWord, index+2, [...arr, inputWord.slice(index, index+2)]);
-      } else {
-        // else check for one
-        const oneLetterMatch = letterGroup.has(inputWord.slice(index, index+1));
-        if(oneLetterMatch) {
-          return checkHelper(inputWord, index+1, [...arr, inputWord.slice(index, index+1)]);
-        } else {
-          // nothing found by choosing two letter grouping
-          // try going back and selecting 1 letter option if it was there
-          for(let i = arr.length-1; i>0; i--) {
-            const symbol = arr[i];
-            if(symbol.length > 1) {
-              const previousOneLetter = symbol[0];
-              const previousOneLetterMatch = elementsMap.get(previousOneLetter).has(previousOneLetter)
+function checkWord(inputWord, index = 0, arr = []) {
+	if(index >= inputWord.length) {
+		return {found: true, result: arr};
+	}
 
-              function wordIndexCalc(arr, arrIndex) {
-                return arr.slice(0, arrIndex).length + 1;
-              }
+	const letterGroup = elementsMap.get(inputWord.slice(index, index+1));
+	if(letterGroup !== undefined) {
+		const a = checkWordHelper(inputWord, index, arr, letterGroup, inputWord.slice(index, index+2)); //?
+		if(a.found) {
+			return a;
+		} else {
+			const b = checkWordHelper(inputWord, index, arr, letterGroup, inputWord.slice(index, index+1));
+			if(b.found) {
+				return b;
+			}
+		}
+	} else {
+		// letter group is not there
+		return {found: false};
+	}
 
-              if(previousOneLetterMatch) {
-                return checkHelper(inputWord, wordIndexCalc(arr, i), [...arr.slice(0, i), previousOneLetter]);
-              }
-            } else if(i === 1) {
-              return [];
-            }
-          }
-        }
-      }
-    } else {
-      // letter group is not there
-      return [];
-    }
-  }
+	return {found: false};
+}
   
-  function check(inputWord) {
-    // TODO: determine if `inputWord` can be spelled
-    // with periodic table symbols; return array with
-    // them if so (empty array otherwise)
-    const checkResult = checkHelper(inputWord);
-    if(checkResult.join('').length !== inputWord.length) {
-      return []
-    }
-    return checkResult;
-  }
-  
-  function lookup(elementSymbol) {
-    // TODO: return the element entry based on specified
-    // symbol (case-insensitive)
-    const symbolMatch = elementsMap.get(elementSymbol[0]).get(elementSymbol);
-    if(symbolMatch !== undefined) {
-      const symbolTitleCased = elementSymbol[0].toUpperCase() + elementSymbol.slice(1);
-      return {
-        symbol: symbolTitleCased,
-        ...symbolMatch
-      }
-    }
-  
-    return {};
-  }
+function check(inputWord) {
+	// TODO: determine if `inputWord` can be spelled
+	// with periodic table symbols; return array with
+	// them if so (empty array otherwise)
+	const checkResult = checkWord(inputWord); //?
+	if(!checkResult.found) {
+		return []
+	}
+	return checkResult.result;
+}
+
+function lookup(elementSymbol) {
+	// TODO: return the element entry based on specified
+	// symbol (case-insensitive)
+	const symbolMatch = elementsMap.get(elementSymbol[0]).get(elementSymbol);
+	if(symbolMatch !== undefined) {
+		const symbolTitleCased = elementSymbol[0].toUpperCase() + elementSymbol.slice(1);
+		return {
+			symbol: symbolTitleCased,
+			...symbolMatch
+		}
+	}
+
+	return {};
+}
 
 const elementsMap = createElementsMap(elements);
 console.log(elementsMap.get('b'))
@@ -751,10 +699,10 @@ console.log(lookup('e'))
 // console.log(check('ballistic'))
 console.log(check('pirate'))
 console.log(check('vaccine'))
-// console.log(check('yellow'));
+console.log(check('yellow'));
 
-const a = [1,2,3];
-console.log(a[a.length-1])
+// const a = [1,2,3];
+// console.log(a[a.length-1])
 // console.log(check('aces'))
 
 // const pass = words.map(word => check(word))
