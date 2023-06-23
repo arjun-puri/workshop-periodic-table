@@ -63,6 +63,7 @@ function check(inputWord) {
 	// with periodic table symbols; return array with
 	// them if so (empty array otherwise)
   const checkResult = checkHelper(inputWord);
+	if(checkResult === undefined) {console.log('undefined', inputWord)}
 	if(checkResult.join('').length !== inputWord.length) {
 		return []
 	}
