@@ -17,7 +17,16 @@ async function loadPeriodicTable() {
 
 function createElementsMap(elements) {
   const elementsMap = new Map();
-  elements.forEach(element => elementsMap.set(element.symbol.toLowerCase(), {"name": element.name, "number": element.number}));
+  elements.forEach(element => {
+    const lowerCaseSymbol = element.symbol.toLowerCase();
+    if(elementsMap.has(lowerCaseSymbol[0])) {
+      elementsMap.set(lowerCaseSymbol[0], elementsMap.get(lowerCaseSymbol[0]).set(lowerCaseSymbol, {"name": element.name, "number": element.number}))
+    } else {
+      const newSymbolMap = new Map();
+      newSymbolMap.set(lowerCaseSymbol, {"name": element.name, "number": element.number});
+      elementsMap.set(lowerCaseSymbol[0], newSymbolMap)
+    }
+  })
   return elementsMap;
 }
 
@@ -25,17 +34,26 @@ function checkHelper(inputWord) {
 	if(inputWord.length === 0) {
     return [];
   }
-  
-  const twoLetterMatch = elementsMap.has(inputWord.slice(0, 2));
-  if(twoLetterMatch !== false) {
-    return [inputWord.slice(0, 2), ...checkHelper(inputWord.slice(2))]
-  } else {
-    const oneLetterMatch = elementsMap.has(inputWord.slice(0, 1));
-    if(oneLetterMatch !== false) {
-      return [inputWord.slice(0, 1), ...checkHelper(inputWord.slice(1))]
+
+  const letterGroup = elementsMap.get(inputWord.slice(0, 1));
+  if(letterGroup !== undefined) {
+    // check for two letter match as that is preferable
+    const twoLetterMatch = letterGroup.has(inputWord.slice(0, 2));
+    if(twoLetterMatch) {
+      return [inputWord.slice(0, 2), ...checkHelper(inputWord.slice(2))];
     } else {
-      return [];
+      // else check for one
+      const oneLetterMatch = letterGroup.has(inputWord.slice(0, 1));
+      if(oneLetterMatch) {
+        return [inputWord.slice(0, 1), ...checkHelper(inputWord.slice(1))]
+      } else {
+        // nothing found
+        return [];
+      }
     }
+  } else {
+    // letter group is not there
+    return [];
   }
 }
 
@@ -53,7 +71,7 @@ function check(inputWord) {
 function lookup(elementSymbol) {
 	// TODO: return the element entry based on specified
 	// symbol (case-insensitive)
-	const symbolMatch = elementsMap.get(elementSymbol);
+	const symbolMatch = elementsMap.get(elementSymbol[0]).get(elementSymbol);
 	if(symbolMatch !== undefined) {
 		const symbolTitleCased = elementSymbol[0].toUpperCase() + elementSymbol.slice(1);
     return {
