@@ -1,5 +1,5 @@
 import Speller from "./speller.js";
-import performanceCheck from "./util";
+import performanceCheck from "./util.js";
 
 
 if (/complete|interactive|loaded/.test(document.readyState)) {

@@ -30,32 +30,48 @@ function createElementsMap(elements) {
   return elementsMap;
 }
 
-function checkHelper(inputWord) {
-	if(inputWord.length === 0) {
-    return [];
-  }
-
-  const letterGroup = elementsMap.get(inputWord.slice(0, 1));
-  if(letterGroup !== undefined) {
-    // check for two letter match as that is preferable
-    const twoLetterMatch = letterGroup.has(inputWord.slice(0, 2));
-    if(twoLetterMatch) {
-      return [inputWord.slice(0, 2), ...checkHelper(inputWord.slice(2))];
-    } else {
-      // else check for one
-      const oneLetterMatch = letterGroup.has(inputWord.slice(0, 1));
-      if(oneLetterMatch) {
-        return [inputWord.slice(0, 1), ...checkHelper(inputWord.slice(1))]
-      } else {
-        // nothing found
-        return [];
-      }
+  function checkHelper(inputWord, index = 0, arr = []) {
+    if(index >= inputWord.length) {
+      return arr;
     }
-  } else {
-    // letter group is not there
-    return [];
+  
+    const letterGroup = elementsMap.get(inputWord.slice(index, index+1));
+    if(letterGroup !== undefined) {
+      // check for two letter match as that is preferable
+      const twoLetterMatch = letterGroup.has(inputWord.slice(index, index+2));
+      if(twoLetterMatch) {
+        return checkHelper(inputWord, index+2, [...arr, inputWord.slice(index, index+2)]);
+      } else {
+        // else check for one
+        const oneLetterMatch = letterGroup.has(inputWord.slice(index, index+1));
+        if(oneLetterMatch) {
+          return checkHelper(inputWord, index+1, [...arr, inputWord.slice(index, index+1)]);
+        } else {
+          // nothing found by choosing two letter grouping
+          // try going back and selecting 1 letter option if it was there
+          const revArr = [...arr].reverse();
+          for(let i = 0; i<arr.length; i++) {
+            const symbol = revArr[i];
+            if(symbol.length > 1) {
+              const previousOneLetter = symbol[0];
+              const previousOneLetterMatch = elementsMap.get(previousOneLetter).has(previousOneLetter)
+
+              if(previousOneLetterMatch) {
+                return checkHelper(inputWord, index-(i*2)-1, [...arr.slice(0, -(i+1)), previousOneLetter]);
+              }
+            }
+            // if loop ended but no valid past route found.
+            else if(i===arr.length-1) {
+              return [];
+            }
+          }
+        }
+      }
+    } else {
+      // letter group is not there
+      return [];
+    }
   }
-}
 
 function check(inputWord) {
 	// TODO: determine if `inputWord` can be spelled
