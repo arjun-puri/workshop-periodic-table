@@ -1,19 +1,4 @@
-export default {
-	check,
-	lookup,
-};
-
-var elements;
-
-await loadPeriodicTable();
-
-const elementsMap = createElementsMap(elements);
-
-// ****************************
-
-async function loadPeriodicTable() {
-	elements = await (await fetch("periodic-table.json")).json();
-}
+import elements from '../../periodic-table.json';
 
 function createElementsMap(elements) {
   const elementsMap = new Map();
@@ -78,6 +63,7 @@ function check(inputWord) {
 	// with periodic table symbols; return array with
 	// them if so (empty array otherwise)
   const checkResult = checkHelper(inputWord);
+	if(checkResult === undefined) {console.log('undefined', inputWord)}
 	if(checkResult.join('').length !== inputWord.length) {
 		return []
 	}
@@ -97,4 +83,11 @@ function lookup(elementSymbol) {
 	}
 
 	return {};
+}
+
+const elementsMap = createElementsMap(elements);
+
+export {
+  check,
+  lookup
 }
