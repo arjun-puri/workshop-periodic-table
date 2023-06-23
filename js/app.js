@@ -1,4 +1,5 @@
 import Speller from "./speller.js";
+import performanceCheck from "./util";
 
 
 if (/complete|interactive|loaded/.test(document.readyState)) {
@@ -39,7 +40,8 @@ function ready(){
 		}
 
 		// attempt to spell word
-		var symbols = Speller.check(inputWord);
+		// var symbols = Speller.check(inputWord);
+		var symbols = performanceCheck(Speller.check.bind(this, inputWord));
 
 		// was a valid spelling found?
 		if (symbols.length > 0) {
@@ -55,7 +57,8 @@ function ready(){
 		wordSpellingEl.innerHTML = "";
 
 		for (let symbol of symbols) {
-			let elementEntry = Speller.lookup(symbol);
+			// let elementEntry = Speller.lookup(symbol);
+			let elementEntry = performanceCheck(Speller.lookup.bind(this, symbol));
 			let elementDiv = document.createElement("div");
 			elementDiv.className = "element";
 			elementDiv.innerHTML = `
